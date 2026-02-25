@@ -35,7 +35,6 @@ await app.register(fastifySwaggerUI, {
   routePrefix: '/docs',
 });
 
-
 app.withTypeProvider<ZodTypeProvider>().route({
   method: 'GET',
   url: "/",
