@@ -2,7 +2,7 @@ import 'dotenv/config'
 
 import fastifyCors from '@fastify/cors';
 import fastifySwagger from '@fastify/swagger';
-import fastifySwaggerUI from '@fastify/swagger-ui';
+import fastifyApiReference from '@scalar/fastify-api-reference';
 import Fastify from 'fastify'
 import { jsonSchemaTransform, serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
@@ -34,13 +34,38 @@ await app.register(fastifySwagger, {
   transform: jsonSchemaTransform,
 });
 
-await app.register(fastifySwaggerUI, {
-  routePrefix: '/docs',
+await app.register(fastifyApiReference, {
+  routePrefix: "/docs",
+  configuration: {
+    sources: [
+      {
+        title: "GlowesFit API",
+        slug: "glowesfit-api",
+        url: "/swagger.json",
+      },
+      {
+        title: "Auth API",
+        slug: "auth-api",
+        url: "/api/auth/open-api/generate-schema",
+      },
+    ],
+  },
 });
 
 await app.register(fastifyCors, {
   origin: process.env.WEB_URL || "http://localhost:3000",
   credentials: true,
+});
+
+app.withTypeProvider<ZodTypeProvider>().route({
+  method: "GET",
+  url: "/swagger.json",
+  schema: {
+    hide: true,
+  },
+  handler: async () => {
+    return app.swagger();
+  },
 });
 
 app.withTypeProvider<ZodTypeProvider>().route({
