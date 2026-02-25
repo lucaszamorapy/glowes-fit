@@ -5,7 +5,8 @@ import { openAPI } from "better-auth/plugins";
 
 import { PrismaClient } from "../generated/prisma/client.js";
 
-const prisma = new PrismaClient({
+//criacao da instancia do prisma para ser usada no adapter do better auth, usando o PrismaPg para conectar com o postgres, e pegando a connection string do .env
+export const prisma = new PrismaClient({
   adapter: new PrismaPg({
     connectionString: process.env.DATABASE_URL!,
   }),

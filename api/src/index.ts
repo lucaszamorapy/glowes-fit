@@ -13,8 +13,8 @@ const app = Fastify({
   logger: true
 })
 
-app.setValidatorCompiler(validatorCompiler)
-app.setSerializerCompiler(serializerCompiler)
+app.setValidatorCompiler(validatorCompiler) //Valida entrada usando Zod
+app.setSerializerCompiler(serializerCompiler) //Valida saída usando Zod
 
 //plugin do swagger para gerar a documentação da api, usando o jsonSchemaTransform para transformar os schemas do zod em json schema
 await app.register(fastifySwagger, {
@@ -67,7 +67,6 @@ app.withTypeProvider<ZodTypeProvider>().route({
     return app.swagger();
   },
 });
-
 app.withTypeProvider<ZodTypeProvider>().route({
   method: 'GET',
   url: "/",
