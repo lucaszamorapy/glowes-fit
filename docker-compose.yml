@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: glowesfit-api-postgres
+    environment:
+      POSTGRES_USER: glowes1
+      POSTGRES_PASSWORD: glowesfit2606
+      POSTGRES_DB: glowesfit-api
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,7 +1,9 @@
 import 'dotenv/config'
 
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUI from '@fastify/swagger-ui';
 import Fastify from 'fastify'
-import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod'
+import { jsonSchemaTransform, serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 
 const app = Fastify({
@@ -10,6 +12,29 @@ const app = Fastify({
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
+
+//plugin do swagger para gerar a documentação da api, usando o jsonSchemaTransform para transformar os schemas do zod em json schema
+await app.register(fastifySwagger, {
+  openapi: {
+    info: {
+      title: 'GlowesFitApi',
+      description: 'API para o projeto GlowesFit',
+      version: '1.0.0',
+    },
+    servers: [
+      {
+        url: 'http://localhost:8081',
+        description: 'Servidor local',
+      }
+    ],
+  },
+  transform: jsonSchemaTransform,
+});
+
+await app.register(fastifySwaggerUI, {
+  routePrefix: '/docs',
+});
+
 
 app.withTypeProvider<ZodTypeProvider>().route({
   method: 'GET',

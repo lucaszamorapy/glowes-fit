@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String        @id @default(uuid())
+  name          String
+  email         String        @unique
+  emailVerified Boolean       @default(false)
+  password      String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  workoutPlans  WorkoutPlan[] //one-to-many
+}
+
+model WorkoutPlan {
+  id          String       @id @default(uuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  name        String
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  workoutDays WorkoutDay[] //one-to-many
+}
+
+enum WeekDay {
+  SUNDAY
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+model WorkoutDay {
+  id            String            @id @default(uuid())
+  workoutPlanId String
+  workoutPlan   WorkoutPlan       @relation(fields: [workoutPlanId], references: [id])
+  isRest        Boolean           @default(false)
+  weekDay       WeekDay
+  exercises     WorkoutExercise[] //one-to-many
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model WorkoutExercise {
+  id                String     @id @default(uuid())
+  workoutDayId      String
+  workoutDay        WorkoutDay @relation(fields: [workoutDayId], references: [id])
+  order             Int
+  name              String
+  sets              Int
+  reps              Int
+  restTimeInSeconds Int
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
