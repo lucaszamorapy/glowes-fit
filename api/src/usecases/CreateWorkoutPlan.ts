@@ -10,6 +10,7 @@ interface InputDto {
     isRest: boolean;
     weekDay: WeekDay;
     estimatedDurationInSeconds: number;
+    coverImageUrl?: string;
     exercises: Array<{
       order: number;
       name: string;
@@ -20,11 +21,27 @@ interface InputDto {
   }>
 }
 
-// export interface OutputDto {
-// }
+export interface CreateWorkoutPlanOutputDto {
+  id: string;
+  name: string;
+  workoutDays: Array<{
+    name: string;
+    weekDay: WeekDay;
+    isRest: boolean;
+    estimatedDurationInSeconds: number;
+    coverImageUrl?: string;
+    exercises: Array<{
+      order: number;
+      name: string;
+      sets: number;
+      reps: number;
+      restTimeInSeconds: number;
+    }>;
+  }>;
+}
 
 export class CreateWorkoutPlan {
-  async execute(dto: InputDto) {
+  async execute(dto: InputDto): Promise<CreateWorkoutPlanOutputDto> {
     const existingActiveWorkoutPlan = await prisma.workoutPlan.findFirst({
       where: {
         userId: dto.userId,
@@ -53,6 +70,7 @@ export class CreateWorkoutPlan {
               isRest: workoutDay.isRest,
               weekDay: workoutDay.weekDay,
               estimatedDurationInSeconds: workoutDay.estimatedDurationInSeconds,
+              coverImageUrl: workoutDay.coverImageUrl,
               exercises: {
                 create: workoutDay.exercises.map(exercise => ({
                   order: exercise.order,
@@ -89,7 +107,7 @@ export class CreateWorkoutPlan {
           weekDay: day.weekDay,
           isRest: day.isRest,
           estimatedDurationInSeconds: day.estimatedDurationInSeconds,
-          //coverImageUrl: day.coverImageUrl ?? undefined,
+          coverImageUrl: (day as { coverImageUrl?: string | null }).coverImageUrl ?? undefined,
           exercises: day.exercises.map((exercise) => ({
             order: exercise.order,
             name: exercise.name,

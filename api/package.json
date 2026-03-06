@@ -6,7 +6,8 @@
   "author": "",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "context7": "context7-mcp --api-key ctx7sk-f822b350-0907-4708-9d51-58919a0dc3ec"
   },
   "engines": {
     "node": "24.x"
@@ -17,6 +18,7 @@
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.4.0",
     "@scalar/fastify-api-reference": "^1.44.20",
+    "@upstash/context7-mcp": "^2.1.2",
     "better-auth": "^1.4.18",
     "dotenv": "^17.3.1",
     "fastify": "^5.7.4",
