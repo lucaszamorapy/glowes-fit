@@ -10,6 +10,8 @@ import {
 import { auth } from "../lib/auth.js";
 import {
   ErrorSchema,
+  GetWorkoutPlanByIdParamsSchema,
+  GetWorkoutPlanByIdResponseSchema,
   StartWorkoutSessionParamsSchema,
   StartWorkoutSessionResponseSchema,
   UpdateWorkoutSessionBodySchema,
@@ -18,6 +20,7 @@ import {
   WorkoutPlanSchema,
 } from "../schemas/index.js";
 import { CreateWorkoutPlan, CreateWorkoutPlanOutputDto } from "../usecases/CreateWorkoutPlan.js";
+import { GetWorkoutPlanById } from "../usecases/GetWorkoutPlanById.js";
 import { StartWorkoutSession } from "../usecases/StartWorkoutSession.js";
 import { UpdateWorkoutSession } from "../usecases/UpdateWorkoutSession.js";
 
@@ -72,6 +75,57 @@ export const workoutPlanRouter = async (app: FastifyInstance) => {
         });
       }
 
+    }
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "GET",
+    url: "/:id",
+    schema: {
+      tags: ['Workout Plan'],
+      summary: "Get a workout plan by ID",
+      description: "Returns the workout plan and its days (with exercisesCount only, no exercises). Protected; user must own the plan.",
+      params: GetWorkoutPlanByIdParamsSchema,
+      response: {
+        200: GetWorkoutPlanByIdResponseSchema,
+        401: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      }
+    },
+    handler: async (request, reply): Promise<void> => {
+      try {
+        const session = await auth.api.getSession({
+          headers: fromNodeHeaders(request.headers),
+        });
+        if (!session) {
+          reply.status(401).send({
+            error: "Unauthorized",
+            code: "UNAUTHORIZED"
+          });
+          return;
+        }
+        const params = request.params;
+        const getWorkoutPlanById = new GetWorkoutPlanById();
+        const result = await getWorkoutPlanById.execute({
+          userId: session.user.id,
+          workoutPlanId: params.id,
+        });
+        reply.status(200).send(result);
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          reply.status(404).send({
+            error: error.message,
+            code: "NOT_FOUND_ERROR"
+          });
+          return;
+        }
+        app.log.error(error);
+        reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR"
+        });
+      }
     }
   });
 

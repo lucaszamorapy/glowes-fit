@@ -8,6 +8,7 @@ import { jsonSchemaTransform, serializerCompiler, validatorCompiler, ZodTypeProv
 import z from 'zod'
 
 import { auth } from './lib/auth.js';
+import { homeRouter } from './routes/home.js';
 import { workoutPlanRouter } from './routes/workout-plan.js';
 
 const app = Fastify({
@@ -87,6 +88,7 @@ app.withTypeProvider<ZodTypeProvider>().route({
 });
 
 //Routes
+await app.register(homeRouter, { prefix: "/home" });
 await app.register(workoutPlanRouter, { prefix: "/workout-plans" });
 
 app.route({
