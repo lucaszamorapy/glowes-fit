@@ -12,10 +12,14 @@ import {
   ErrorSchema,
   StartWorkoutSessionParamsSchema,
   StartWorkoutSessionResponseSchema,
+  UpdateWorkoutSessionBodySchema,
+  UpdateWorkoutSessionParamsSchema,
+  UpdateWorkoutSessionResponseSchema,
   WorkoutPlanSchema,
 } from "../schemas/index.js";
 import { CreateWorkoutPlan, CreateWorkoutPlanOutputDto } from "../usecases/CreateWorkoutPlan.js";
 import { StartWorkoutSession } from "../usecases/StartWorkoutSession.js";
+import { UpdateWorkoutSession } from "../usecases/UpdateWorkoutSession.js";
 
 export const workoutPlanRouter = async (app: FastifyInstance) => {
   app.withTypeProvider<ZodTypeProvider>().route({
@@ -127,6 +131,63 @@ export const workoutPlanRouter = async (app: FastifyInstance) => {
           reply.status(409).send({
             error: error.message,
             code: "SESSION_ALREADY_STARTED"
+          });
+          return;
+        }
+        app.log.error(error);
+        reply.status(500).send({
+          error: "Internal server error",
+          code: "INTERNAL_SERVER_ERROR"
+        });
+      }
+    }
+  });
+
+  app.withTypeProvider<ZodTypeProvider>().route({
+    method: "PATCH",
+    url: "/:workoutPlanId/days/:workoutDayId/sessions/:sessionId",
+    schema: {
+      tags: ['Workout Plan'],
+      summary: "Update a workout session",
+      description: "Update a specific workout session (e.g. set completedAt)",
+      params: UpdateWorkoutSessionParamsSchema,
+      body: UpdateWorkoutSessionBodySchema,
+      response: {
+        200: UpdateWorkoutSessionResponseSchema,
+        400: ErrorSchema,
+        401: ErrorSchema,
+        404: ErrorSchema,
+        500: ErrorSchema,
+      }
+    },
+    handler: async (request, reply): Promise<void> => {
+      try {
+        const session = await auth.api.getSession({
+          headers: fromNodeHeaders(request.headers),
+        });
+        if (!session) {
+          reply.status(401).send({
+            error: "Unauthorized",
+            code: "UNAUTHORIZED"
+          });
+          return;
+        }
+        const params = request.params;
+        const body = request.body;
+        const updateWorkoutSession = new UpdateWorkoutSession();
+        const result = await updateWorkoutSession.execute({
+          userId: session.user.id,
+          workoutPlanId: params.workoutPlanId,
+          workoutDayId: params.workoutDayId,
+          sessionId: params.sessionId,
+          completedAt: body.completedAt,
+        });
+        reply.status(200).send(result);
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          reply.status(404).send({
+            error: error.message,
+            code: "NOT_FOUND_ERROR"
           });
           return;
         }
