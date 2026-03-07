@@ -88,7 +88,10 @@ export const aiRoutes = async (app: FastifyInstance) => {
       });
 
       if (!session) {
-        return reply.status(401).send({ error: "Unauthorized" });
+        return reply.status(401).send({
+          error: "Unauthorized",
+          code: "UNAUTHORIZED",
+        });
       }
 
       const userId = session.user.id;
