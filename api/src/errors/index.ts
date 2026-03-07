@@ -6,14 +6,14 @@ export class NotFoundError extends Error {
 }
 
 export class WorkoutPlanNotActiveError extends Error {
-  constructor(message: string = "Workout plan is not active") {
+  constructor(message: string) {
     super(message);
     this.name = "WorkoutPlanNotActiveError";
   }
 }
 
 export class SessionAlreadyStartedError extends Error {
-  constructor(message: string = "Session already started for this day") {
+  constructor(message: string) {
     super(message);
     this.name = "SessionAlreadyStartedError";
   }

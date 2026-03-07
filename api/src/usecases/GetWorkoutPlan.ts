@@ -7,7 +7,7 @@ interface InputDto {
   workoutPlanId: string;
 }
 
-export interface GetWorkoutPlanByIdOutputDto {
+interface OutputDto {
   id: string;
   name: string;
   workoutDays: Array<{
@@ -21,13 +21,10 @@ export interface GetWorkoutPlanByIdOutputDto {
   }>;
 }
 
-export class GetWorkoutPlanById {
-  async execute(dto: InputDto): Promise<GetWorkoutPlanByIdOutputDto> {
-    const workoutPlan = await prisma.workoutPlan.findFirst({
-      where: {
-        id: dto.workoutPlanId,
-        userId: dto.userId,
-      },
+export class GetWorkoutPlan {
+  async execute(dto: InputDto): Promise<OutputDto> {
+    const workoutPlan = await prisma.workoutPlan.findUnique({
+      where: { id: dto.workoutPlanId },
       include: {
         workoutDays: {
           include: {
@@ -39,7 +36,7 @@ export class GetWorkoutPlanById {
       },
     });
 
-    if (!workoutPlan) {
+    if (!workoutPlan || workoutPlan.userId !== dto.userId) {
       throw new NotFoundError("Workout plan not found");
     }
 

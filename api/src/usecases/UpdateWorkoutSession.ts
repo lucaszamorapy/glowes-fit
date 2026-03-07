@@ -9,62 +9,47 @@ interface InputDto {
   completedAt: string;
 }
 
-export interface UpdateWorkoutSessionOutputDto {
+interface OutputDto {
   id: string;
-  completedAt: string;
   startedAt: string;
+  completedAt: string;
 }
 
 export class UpdateWorkoutSession {
-  async execute(dto: InputDto): Promise<UpdateWorkoutSessionOutputDto> {
+  async execute(dto: InputDto): Promise<OutputDto> {
     const workoutPlan = await prisma.workoutPlan.findUnique({
       where: { id: dto.workoutPlanId },
-      include: {
-        workoutDays: {
-          where: { id: dto.workoutDayId },
-        },
-      },
     });
 
-    if (!workoutPlan) {
+    if (!workoutPlan || workoutPlan.userId !== dto.userId) {
       throw new NotFoundError("Workout plan not found");
     }
 
-    if (workoutPlan.userId !== dto.userId) {
-      throw new NotFoundError("Workout plan not found");
-    }
+    const workoutDay = await prisma.workoutDay.findUnique({
+      where: { id: dto.workoutDayId, workoutPlanId: dto.workoutPlanId },
+    });
 
-    const workoutDay = workoutPlan.workoutDays[0];
     if (!workoutDay) {
       throw new NotFoundError("Workout day not found");
     }
 
     const session = await prisma.workoutSession.findUnique({
-      where: {
-        id: dto.sessionId,
-        workoutDayId: dto.workoutDayId,
-        userId: dto.userId,
-      },
+      where: { id: dto.sessionId, workoutDayId: dto.workoutDayId },
     });
 
     if (!session) {
       throw new NotFoundError("Workout session not found");
     }
 
-    const completedAtDate = new Date(dto.completedAt);
-    if (Number.isNaN(completedAtDate.getTime())) {
-      throw new Error("Invalid completedAt date");
-    }
-
-    const updated = await prisma.workoutSession.update({
+    const updatedSession = await prisma.workoutSession.update({
       where: { id: dto.sessionId },
-      data: { completedAt: completedAtDate },
+      data: { completedAt: new Date(dto.completedAt) },
     });
 
     return {
-      id: updated.id,
-      completedAt: updated.completedAt!.toISOString(),
-      startedAt: updated.startedAt.toISOString(),
+      id: updatedSession.id,
+      startedAt: updatedSession.startedAt.toISOString(),
+      completedAt: updatedSession.completedAt!.toISOString(),
     };
   }
 }
